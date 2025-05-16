@@ -1,120 +1,53 @@
 <?php
-// control_escolar/index.php (versión PaaS)
-$host = "mysql-paas-central.mysql.database.azure.com"
-$dbname = getenv('DB_NAME') ?: "control_escolar";
-$user = getenv('DB_USER') ?: "paasuser";
-$pass = getenv('DB_PASS') ?: "PaaSSec789";
+$host = "dbmysql-paas.mysql.database.azure.com";
+$adminUser = "azureadmin";
+$adminPass = "PaaSSec456!";
+$dbName = "control_escolar";
 
 try {
-    $conn = new PDO("mysql:host=$host;dbname=$dbname", $user, $pass);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // Conexión como administrador
+    $adminConn = new PDO(
+        "mysql:host=$host;dbname=mysql", 
+        $adminUser, 
+        $adminPass,
+        [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::MYSQL_ATTR_SSL_CA => '/path/to/DigiCertGlobalRootCA.crt.pem',
+            PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => true
+        ]
+    );
+
+    // 1. Crear la base de datos (si no existe)
+    $adminConn->exec("CREATE DATABASE IF NOT EXISTS $dbName");
+
+    // 2. Crear usuario y asignar privilegios
+    $adminConn->exec("CREATE USER IF NOT EXISTS 'appuser'@'%' IDENTIFIED BY 'AppUserMy123!'");
+    $adminConn->exec("GRANT ALL PRIVILEGES ON $dbName.* TO 'appuser'@'%'");
+    $adminConn->exec("FLUSH PRIVILEGES");
+
+    // 3. Crear tabla (usando la nueva conexión con la base de datos creada)
+    $dbConn = new PDO(
+        "mysql:host=$host;dbname=$dbName", 
+        $adminUser, 
+        $adminPass,
+        [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::MYSQL_ATTR_SSL_CA => '/path/to/DigiCertGlobalRootCA.crt.pem'
+        ]
+    );
     
-    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['insertar'])) {
-        $stmt = $conn->prepare("INSERT INTO alumnos VALUES (?, ?, ?)");
-        $stmt->execute([
-            $_POST['num_control'],
-            $_POST['correo'],
-            $_POST['semestre']
-        ]);
-        $mensaje = "Alumno registrado correctamente!";
-    }
-    
-    $resultados = [];
-    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['buscar'])) {
-        $busqueda = '%'.$_POST['busqueda'].'%';
-        $stmt = $conn->prepare("SELECT * FROM alumnos WHERE Num_Control LIKE ? OR Correo LIKE ?");
-        $stmt->execute([$busqueda, $busqueda]);
-        $resultados = $stmt->fetchAll();
-    } else {
-        $stmt = $conn->query("SELECT * FROM alumnos ORDER BY Num_Control");
-        $resultados = $stmt->fetchAll();
-    }
-} catch(PDOException $e) {
-    $error = "Error: " . $e->getMessage();
+    $dbConn->exec("
+        CREATE TABLE IF NOT EXISTS alumnos (
+            Num_Control INT(8) PRIMARY KEY,
+            Correo VARCHAR(320) NOT NULL,
+            Semestre INT(2) NOT NULL,
+            fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ");
+
+    echo "¡Base de datos, usuario y tabla configurados correctamente!";
+
+} catch (PDOException $e) {
+    die("Error: " . $e->getMessage());
 }
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <h2>Computo en la Nube - Proyecto Final (PaaS)</h2>
-          <p>Reynaldo Enriquez Zamorano.</p>
-          <h3>Formulario de Alumnos</h3>
-    </head>
-<body>
-    <div class="container">
-        <h1>Control Escolar - Plataforma como Servicio</h1>
-        
-        <?php if(isset($error)): ?>
-            <div class="message error"><?= htmlspecialchars($error) ?></div>
-        <?php endif; ?>
-        
-        <?php if(isset($mensaje)): ?>
-            <div class="message success"><?= htmlspecialchars($mensaje) ?></div>
-        <?php endif; ?>
-        
-        <div class="form-section">
-            <h2>Registrar Nuevo Alumno</h2>
-            <form method="post">
-                <input type="hidden" name="insertar" value="1">
-                <div class="form-group">
-                    <label for="num_control">Número de Control:</label>
-                    <input type="number" name="num_control" min="10000000" max="99999999" 
-                           placeholder="8 dígitos" required>
-                </div>
-                <div class="form-group">
-                    <label for="correo">Correo Electrónico:</label>
-                    <input type="email" name="correo" placeholder="ejemplo@escuela.com" required>
-                </div>
-                <div class="form-group">
-                    <label for="semestre">Semestre:</label>
-                    <input type="number" name="semestre" min="1" max="12" placeholder="1-12" required>
-                </div>
-                <div style="margin-left: 180px;">
-                    <button type="submit">Guardar Alumno</button>
-                </div>
-            </form>
-        </div>
-        
-        <div class="form-section">
-            <h2>Buscar Alumnos</h2>
-            <form method="post">
-                <input type="hidden" name="buscar" value="1">
-                <div class="search-box">
-                    <label for="busqueda">Buscar:</label>
-                    <input type="text" name="busqueda" placeholder="N° Control o Correo">
-                    <button type="submit">Buscar</button>
-                    <button type="button" class="secondary" onclick="window.location.href='index.php'">Mostrar Todos</button>
-                </div>
-            </form>
-        </div>
-        
-        <h2>Registros de Alumnos</h2>
-        <?php if(count($resultados) > 0): ?>
-        <table>
-            <thead>
-                <tr>
-                    <th>N° Control</th>
-                    <th>Correo Electrónico</th>
-                    <th>Semestre</th>
-                    <th>Fecha de Registro</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach($resultados as $alumno): ?>
-                <tr>
-                    <td><?= htmlspecialchars($alumno['Num_Control']) ?></td>
-                    <td><?= htmlspecialchars($alumno['Correo']) ?></td>
-                    <td><?= htmlspecialchars($alumno['Semestre']) ?></td>
-                    <td><?= htmlspecialchars($alumno['fecha_registro']) ?></td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-        <?php else: ?>
-        <p>No se encontraron registros de alumnos.</p>
-        <?php endif; ?>
-    </div>
-</body>
-</html>

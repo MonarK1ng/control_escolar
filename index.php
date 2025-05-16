@@ -50,7 +50,7 @@ try {
     <div class="container">
         <h2>Computo en la Nube - Proyecto Final (PaaS)</h2>
         <p>Reynaldo Enriquez Zamorano.</p>
-        <h1>Control Escolar - Plataforma como Servicio</h1>
+        <h1>Control Escolar</h1>
         
         <?php if(isset($error)): ?>
             <div class="message error"><?= htmlspecialchars($error) ?></div>
@@ -67,17 +67,17 @@ try {
                 <div class="form-group">
                     <label for="num_control">Número de Control:</label>
                     <input type="number" name="num_control" min="10000000" max="99999999" 
-                           placeholder="8 dígitos" required>
+                           placeholder="" required>
                 </div>
                 <div class="form-group">
                     <label for="correo">Correo Electrónico:</label>
-                    <input type="email" name="correo" placeholder="ejemplo@escuela.com" required>
+                    <input type="email" name="correo" placeholder="ejemplo@tecnm.mx" required>
                 </div>
                 <div class="form-group">
                     <label for="semestre">Semestre:</label>
                     <input type="number" name="semestre" min="1" max="12" placeholder="1-12" required>
                 </div>
-                <div style="margin-left: 180px;">
+                <div>
                     <button type="submit">Guardar Alumno</button>
                 </div>
             </form>

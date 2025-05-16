@@ -66,4 +66,61 @@ try {
                 <input type="hidden" name="insertar" value="1">
                 <div class="form-group">
                     <label for="num_control">Número de Control:</label>
-                    <input type="number
+                    <input type="number" name="num_control" min="10000000" max="99999999" 
+                           placeholder="8 dígitos" required>
+                </div>
+                <div class="form-group">
+                    <label for="correo">Correo Electrónico:</label>
+                    <input type="email" name="correo" placeholder="ejemplo@escuela.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="semestre">Semestre:</label>
+                    <input type="number" name="semestre" min="1" max="12" placeholder="1-12" required>
+                </div>
+                <div style="margin-left: 180px;">
+                    <button type="submit">Guardar Alumno</button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="form-section">
+            <h2>Buscar Alumnos</h2>
+            <form method="post">
+                <input type="hidden" name="buscar" value="1">
+                <div class="search-box">
+                    <label for="busqueda">Buscar:</label>
+                    <input type="text" name="busqueda" placeholder="N° Control o Correo">
+                    <button type="submit">Buscar</button>
+                    <button type="button" class="secondary" onclick="window.location.href='index.php'">Mostrar Todos</button>
+                </div>
+            </form>
+        </div>
+        
+        <h2>Registros de Alumnos</h2>
+        <?php if(count($resultados) > 0): ?>
+        <table>
+            <thead>
+                <tr>
+                    <th>N° Control</th>
+                    <th>Correo Electrónico</th>
+                    <th>Semestre</th>
+                    <th>Fecha de Registro</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach($resultados as $alumno): ?>
+                <tr>
+                    <td><?= htmlspecialchars($alumno['Num_Control']) ?></td>
+                    <td><?= htmlspecialchars($alumno['Correo']) ?></td>
+                    <td><?= htmlspecialchars($alumno['Semestre']) ?></td>
+                    <td><?= htmlspecialchars($alumno['fecha_registro']) ?></td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+        <?php else: ?>
+        <p>No se encontraron registros de alumnos.</p>
+        <?php endif; ?>
+    </div>
+</body>
+</html>

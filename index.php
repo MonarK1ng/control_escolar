@@ -1,7 +1,7 @@
 <?php
 $host = "dbmysql-paas.mysql.database.azure.com";
 $adminUser = "azureadmin";
-$adminPass = "PaaSSec456!";
+$adminPass = "PaaSSec456";
 $dbName = "control_escolar";
 
 try {

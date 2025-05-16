@@ -12,7 +12,7 @@ try {
         $adminPass,
         [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::MYSQL_ATTR_SSL_CA => '/path/to/DigiCertGlobalRootCA.crt.pem',
+            PDO::MYSQL_ATTR_SSL_CA => '/home/site/wwwroot/DigiCertGlobalRootCA.crt.pem
             PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => true
         ]
     );

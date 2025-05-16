@@ -1,9 +1,9 @@
 <?php
 // control_escolar/index.php (versión PaaS)
-$host = getenv('DB_HOST') ?: "20.10.5.2";
+$host = "mysql-paas-central.mysql.database.azure.com"
 $dbname = getenv('DB_NAME') ?: "control_escolar";
 $user = getenv('DB_USER') ?: "paasuser";
-$pass = getenv('DB_PASS') ?: "PaaSSecure789!";
+$pass = getenv('DB_PASS') ?: "PaaSSec789";
 
 try {
     $conn = new PDO("mysql:host=$host;dbname=$dbname", $user, $pass);

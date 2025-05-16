@@ -1,47 +1,69 @@
 <?php
-// Script de configuración inicial (se ejecutará solo una vez)
-header('Content-Type: text/plain');
+// control_escolar/index.php (versión PaaS)
+$host = "mysql-paas-central.mysql.database.azure.com";
+$dbname = getenv('DB_NAME') ?: "control_escolar";
+$user = getenv('DB_USER') ?: "appuser";
+$pass = getenv('DB_PASS') ?: "AppUser!23";
 
-echo "Configurando base de datos...\n\n";
-
-// 1. Conexión como administrador (usa variables de entorno de Azure)
-$host = getenv('DB_HOST') ?: "dbmysql-paas.mysql.database.azure.com";
-$adminUser = getenv('DB_ADMIN_USER') ?: "azureadmin";
-$adminPass = getenv('DB_ADMIN_PASS') ?: "PaaSSec456";
-$dbName = "control_escolar";
-$appUser = "appuser";
-$appPass = "AppUser!23";
-
+// Configuración SSL (obligatoria para Azure MySQL)
 $sslOptions = [
     PDO::MYSQL_ATTR_SSL_CA => '/home/site/wwwroot/DigiCertGlobalRootCA.crt.pem',
     PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => true
 ];
 
 try {
-    // 2. Crear usuario y base de datos
-    $adminConn = new PDO("mysql:host=$host", $adminUser, $adminPass, $sslOptions);
-    $adminConn->exec("CREATE DATABASE IF NOT EXISTS $dbName");
-    $adminConn->exec("CREATE USER IF NOT EXISTS '$appUser'@'%' IDENTIFIED BY '$appPass'");
-    $adminConn->exec("GRANT ALL PRIVILEGES ON $dbName.* TO '$appUser'@'%'");
-    $adminConn->exec("FLUSH PRIVILEGES");
-
-    // 3. Crear tabla
-    $appConn = new PDO("mysql:host=$host;dbname=$dbName", $appUser, $appPass, $sslOptions);
-    $appConn->exec("
-        CREATE TABLE IF NOT EXISTS alumnos (
-            Num_Control INT(8) PRIMARY KEY,
-            Correo VARCHAR(320) NOT NULL,
-            Semestre INT(2) NOT NULL,
-            fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ");
-
-    echo "✅ Configuración completada.\n";
-    echo "Base de datos: $dbName\n";
-    echo "Usuario: $appUser\n\n";
-    echo "Ahora puedes reemplazar este archivo con tu aplicación real.\n";
-
-} catch (PDOException $e) {
-    echo "❌ Error: " . $e->getMessage() . "\n";
+    $conn = new PDO("mysql:host=$host;dbname=$dbname", $user, $pass, $sslOptions);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    
+    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['insertar'])) {
+        $stmt = $conn->prepare("INSERT INTO alumnos (Num_Control, Correo, Semestre) VALUES (?, ?, ?)");
+        $stmt->execute([
+            $_POST['num_control'],
+            $_POST['correo'],
+            $_POST['semestre']
+        ]);
+        $mensaje = "Alumno registrado correctamente!";
+    }
+    
+    $resultados = [];
+    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['buscar'])) {
+        $busqueda = '%'.$_POST['busqueda'].'%';
+        $stmt = $conn->prepare("SELECT * FROM alumnos WHERE Num_Control LIKE ? OR Correo LIKE ?");
+        $stmt->execute([$busqueda, $busqueda]);
+        $resultados = $stmt->fetchAll();
+    } else {
+        $stmt = $conn->query("SELECT * FROM alumnos ORDER BY Num_Control");
+        $resultados = $stmt->fetchAll();
+    }
+} catch(PDOException $e) {
+    $error = "Error: " . $e->getMessage();
 }
 ?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Escolar PaaS</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Computo en la Nube - Proyecto Final (PaaS)</h2>
+        <p>Reynaldo Enriquez Zamorano.</p>
+        <h1>Control Escolar - Plataforma como Servicio</h1>
+        
+        <?php if(isset($error)): ?>
+            <div class="message error"><?= htmlspecialchars($error) ?></div>
+        <?php endif; ?>
+        
+        <?php if(isset($mensaje)): ?>
+            <div class="message success"><?= htmlspecialchars($mensaje) ?></div>
+        <?php endif; ?>
+        
+        <div class="form-section">
+            <h2>Registrar Nuevo Alumno</h2>
+            <form method="post">
+                <input type="hidden" name="insertar" value="1">
+                <div class="form-group">
+                    <label for="num_control">Número de Control:</label>
+                    <input type="number

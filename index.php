@@ -8,7 +8,7 @@ $pass = getenv('DB_PASS') ?: "AppUser!23";
 // Configuración SSL (obligatoria para Azure MySQL)
 $sslOptions = [
     PDO::MYSQL_ATTR_SSL_CA => '/home/site/wwwroot/DigiCertGlobalRootCA.crt.pem',
-    PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => true
+    PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false
 ];
 
 try {

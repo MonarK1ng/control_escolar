@@ -1,6 +1,6 @@
 <?php
 // control_escolar/index.php (versión PaaS)
-$host = "dbmysql-paas.mysql.database.azure.com";
+$host = "20.10.5.4";
 $dbname = getenv('DB_NAME') ?: "control_escolar";
 $user = getenv('DB_USER') ?: "appuser";
 $pass = getenv('DB_PASS') ?: "AppUser!23";

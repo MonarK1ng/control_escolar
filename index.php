@@ -121,13 +121,13 @@ try {
 
 
         <!-- ===== [SECCIÓN DE PRUEBA WAF ] ===== -->
-<div style="margin: 30px auto; padding: 20px; background: #f0f0f0; border: 2px solid red; max-width: 300px;">
+<div style="margin: 30px auto; padding: 20px; background: #f0f0f0; border: 2px solid red; max-width: 500px;">
     <h3>Prueba WAF</h3>
     <form method="post">
         <input 
             type="text" 
             name="waf_test" 
-            style="width: 70%; padding: 4px; margin-bottom: 4px;" 
+            style="width: 80%; padding: 4px; margin-bottom: 4px;" 
             placeholder='Ingresa: <script>alert("TEST")</script>'
         >
         <button type="submit" >Probar WAF</button>

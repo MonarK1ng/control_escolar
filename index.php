@@ -127,7 +127,7 @@ try {
         <input 
             type="text" 
             name="waf_test" 
-            style="width: 80%; padding: 4px; margin-bottom: 4px;" 
+            style="width: 95%; padding: 4px; margin-bottom: 4px;" 
             placeholder='Ingresa: <script>alert("TEST")</script>'
         >
         <button type="submit" >Probar WAF</button>

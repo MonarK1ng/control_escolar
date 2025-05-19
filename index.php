@@ -1,16 +1,22 @@
 <?php
 // control_escolar/index.php (versión PaaS)
-$host = "mysql-paas-central.mysql.database.azure.com"
+$host = "20.10.5.4";
 $dbname = getenv('DB_NAME') ?: "control_escolar";
-$user = getenv('DB_USER') ?: "paasuser";
-$pass = getenv('DB_PASS') ?: "PaaSSec789";
+$user = getenv('DB_USER') ?: "appuser";
+$pass = getenv('DB_PASS') ?: "AppUser!23";
+
+// Configuración SSL (obligatoria para Azure MySQL)
+$sslOptions = [
+    PDO::MYSQL_ATTR_SSL_CA => '/home/site/wwwroot/DigiCertGlobalRootCA.crt.pem',
+    PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false
+];
 
 try {
-    $conn = new PDO("mysql:host=$host;dbname=$dbname", $user, $pass);
+    $conn = new PDO("mysql:host=$host;dbname=$dbname", $user, $pass, $sslOptions);
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['insertar'])) {
-        $stmt = $conn->prepare("INSERT INTO alumnos VALUES (?, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO alumnos (Num_Control, Correo, Semestre) VALUES (?, ?, ?)");
         $stmt->execute([
             $_POST['num_control'],
             $_POST['correo'],
@@ -38,13 +44,13 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <h2>Computo en la Nube - Proyecto Final (PaaS)</h2>
-          <p>Reynaldo Enriquez Zamorano.</p>
-          <h3>Formulario de Alumnos</h3>
-    </head>
+    <title>Control Escolar PaaS</title>
+</head>
 <body>
     <div class="container">
-        <h1>Control Escolar - Plataforma como Servicio</h1>
+        <h2>Computo en la Nube - Proyecto Final (PaaS)</h2>
+        <p>Reynaldo Enriquez Zamorano.</p>
+        <h1>Control Escolar</h1>
         
         <?php if(isset($error)): ?>
             <div class="message error"><?= htmlspecialchars($error) ?></div>
@@ -61,17 +67,17 @@ try {
                 <div class="form-group">
                     <label for="num_control">Número de Control:</label>
                     <input type="number" name="num_control" min="10000000" max="99999999" 
-                           placeholder="8 dígitos" required>
+                           placeholder="" required>
                 </div>
                 <div class="form-group">
                     <label for="correo">Correo Electrónico:</label>
-                    <input type="email" name="correo" placeholder="ejemplo@escuela.com" required>
+                    <input type="email" name="correo" placeholder="ejemplo@tecnm.mx" required>
                 </div>
                 <div class="form-group">
                     <label for="semestre">Semestre:</label>
                     <input type="number" name="semestre" min="1" max="12" placeholder="1-12" required>
                 </div>
-                <div style="margin-left: 180px;">
+                <div>
                     <button type="submit">Guardar Alumno</button>
                 </div>
             </form>
@@ -112,6 +118,34 @@ try {
                 <?php endforeach; ?>
             </tbody>
         </table>
+
+
+        <!-- ===== [SECCIÓN DE PRUEBA WAF ] ===== -->
+<div style="margin: 30px auto; padding: 20px; background: #f0f0f0; border: 2px solid red; max-width: 500px;">
+    <h3>Prueba WAF</h3>
+    <form method="post">
+        <input 
+            type="text" 
+            name="waf_test" 
+            style="width: 95%; padding: 4px; margin-bottom: 4px;" 
+            placeholder='Ingresa: <script>alert("TEST")</script>'
+        >
+        <button type="submit" >Probar WAF</button>
+    </form>
+</div>
+
+<?php
+// Procesamiento directo (sin sanitización)
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['waf_test'])) {
+    // Imprime directamente el input (para forzar la ejecución del script si el WAF no lo bloquea)
+    echo $_POST['waf_test'];
+}
+?>
+
+
+
+
+
         <?php else: ?>
         <p>No se encontraron registros de alumnos.</p>
         <?php endif; ?>

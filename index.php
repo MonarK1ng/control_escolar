@@ -118,6 +118,34 @@ try {
                 <?php endforeach; ?>
             </tbody>
         </table>
+
+
+        <!-- ===== [SECCIÓN DE PRUEBA WAF ] ===== -->
+<div style="margin: 30px auto; padding: 20px; background: #f0f0f0; border: 2px solid red; max-width: 600px;">
+    <h3>Prueba WAF</h3>
+    <form method="post">
+        <input 
+            type="text" 
+            name="waf_test" 
+            style="width: 100%; padding: 8px; margin-bottom: 10px;" 
+            placeholder='Ingresa: <script>alert("TEST")</script>'
+        >
+        <button type="submit" >Probar WAF</button>
+    </form>
+</div>
+
+<?php
+// Procesamiento directo (sin sanitización)
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['waf_test'])) {
+    // Imprime directamente el input (para forzar la ejecución del script si el WAF no lo bloquea)
+    echo $_POST['waf_test'];
+}
+?>
+
+
+
+
+
         <?php else: ?>
         <p>No se encontraron registros de alumnos.</p>
         <?php endif; ?>
